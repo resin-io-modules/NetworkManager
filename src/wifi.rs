@@ -76,7 +76,7 @@ impl<'a> WiFiDevice<'a> {
         &self,
         ssid: &T,
         password: Option<&str>,
-        address: Option<Ipv4Addr>,
+        address: Ipv4Addr,
         security: &str,
         band: &str,
     ) -> Result<(Connection, ConnectionState)>

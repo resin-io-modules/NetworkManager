@@ -272,7 +272,7 @@ pub fn create_hotspot_advanced<S>(
     interface: &str,
     ssid: &S,
     password: Option<&str>,
-    address: Option<Ipv4Addr>,
+    address: Ipv4Addr,
     security: &str,
     band: &str,
 ) -> Result<(Connection, ConnectionState)>

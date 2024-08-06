@@ -351,7 +351,7 @@ impl DBusNetworkManager {
         interface: &str,
         ssid: &T,
         password: Option<&str>,
-        address: Option<Ipv4Addr>,
+        address: Ipv4Addr,
         keymgmt: &str,
         band: &str,
     ) -> Result<(String, String)>
@@ -377,17 +377,14 @@ impl DBusNetworkManager {
         add_str(&mut connection, "type", "802-11-wireless");
 
         let mut ipv4: VariantMap = HashMap::new();
-        if let Some(address) = address {
-            add_str(&mut ipv4, "method", "manual");
 
-            let mut addr_map: VariantMap = HashMap::new();
-            add_str(&mut addr_map, "address", format!("{}", address));
-            add_val(&mut addr_map, "prefix", 24_u32);
+        add_str(&mut ipv4, "method", "shared");
 
-            add_val(&mut ipv4, "address-data", vec![addr_map]);
-        } else {
-            add_str(&mut ipv4, "method", "shared");
-        }
+        let mut addr_map: VariantMap = HashMap::new();
+        add_str(&mut addr_map, "address", format!("{}", address));
+        add_val(&mut addr_map, "prefix", 24_u32);
+
+        add_val(&mut ipv4, "address-data", vec![addr_map]);
 
         let mut settings: HashMap<String, VariantMap> = HashMap::new();
 
