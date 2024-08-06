@@ -4,7 +4,7 @@ use std::rc::Rc;
 use dbus_nm::DBusNetworkManager;
 use errors::*;
 
-use connection::{connect_to_access_point, create_hotspot, Connection, ConnectionState};
+use connection::{connect_to_access_point, create_hotspot, create_hotspot_advanced, Connection, ConnectionState};
 use device::{Device, PathGetter};
 use ssid::{AsSsidSlice, Ssid, SsidSlice};
 
@@ -69,6 +69,29 @@ impl<'a> WiFiDevice<'a> {
             ssid,
             password,
             address,
+        )
+    }
+
+    pub fn create_hotspot_advanced<T>(
+        &self,
+        ssid: &T,
+        password: Option<&str>,
+        address: Option<Ipv4Addr>,
+        security: &str,
+        band: &str,
+    ) -> Result<(Connection, ConnectionState)>
+    where
+        T: AsSsidSlice + ?Sized,
+    {
+        create_hotspot_advanced(
+            &self.dbus_manager,
+            self.device.path(),
+            self.device.interface(),
+            ssid,
+            password,
+            address,
+            security,
+            band,
         )
     }
 }
