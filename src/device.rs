@@ -1,5 +1,5 @@
 use std::fmt;
-use std::sync::Arc;
+use std::rc::Rc;
 
 use dbus_nm::DBusNetworkManager;
 use errors::*;
@@ -8,20 +8,20 @@ use wifi::{new_wifi_device, WiFiDevice};
 
 #[derive(Clone)]
 pub struct Device {
-    dbus_manager: Arc<DBusNetworkManager>,
+    dbus_manager: Rc<DBusNetworkManager>,
     path: String,
     interface: String,
     device_type: DeviceType,
 }
 
 impl Device {
-    fn init(dbus_manager: &Arc<DBusNetworkManager>, path: &str) -> Result<Self> {
+    fn init(dbus_manager: &Rc<DBusNetworkManager>, path: &str) -> Result<Self> {
         let interface = dbus_manager.get_device_interface(path)?;
 
         let device_type = dbus_manager.get_device_type(path)?;
 
         Ok(Device {
-            dbus_manager: Arc::clone(dbus_manager),
+            dbus_manager: Rc::clone(dbus_manager),
             path: path.to_string(),
             interface,
             device_type,
@@ -225,7 +225,7 @@ impl From<i64> for DeviceState {
     }
 }
 
-pub fn get_devices(dbus_manager: &Arc<DBusNetworkManager>) -> Result<Vec<Device>> {
+pub fn get_devices(dbus_manager: &Rc<DBusNetworkManager>) -> Result<Vec<Device>> {
     let device_paths = dbus_manager.get_devices()?;
 
     let mut result = Vec::with_capacity(device_paths.len());
@@ -240,7 +240,7 @@ pub fn get_devices(dbus_manager: &Arc<DBusNetworkManager>) -> Result<Vec<Device>
 }
 
 pub fn get_device_by_interface(
-    dbus_manager: &Arc<DBusNetworkManager>,
+    dbus_manager: &Rc<DBusNetworkManager>,
     interface: &str,
 ) -> Result<Device> {
     let path = dbus_manager.get_device_by_interface(interface)?;
@@ -249,7 +249,7 @@ pub fn get_device_by_interface(
 }
 
 pub fn get_active_connection_devices(
-    dbus_manager: &Arc<DBusNetworkManager>,
+    dbus_manager: &Rc<DBusNetworkManager>,
     active_path: &str,
 ) -> Result<Vec<Device>> {
     let device_paths = dbus_manager.get_active_connection_devices(active_path)?;
