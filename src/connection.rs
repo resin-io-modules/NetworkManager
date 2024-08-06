@@ -1,6 +1,6 @@
 use std::fmt;
 use std::net::Ipv4Addr;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use dbus_nm::DBusNetworkManager;
 use errors::*;
@@ -11,17 +11,17 @@ use wifi::{AccessPoint, AccessPointCredentials};
 
 #[derive(Clone)]
 pub struct Connection {
-    dbus_manager: Rc<DBusNetworkManager>,
+    dbus_manager: Arc<DBusNetworkManager>,
     path: String,
     settings: ConnectionSettings,
 }
 
 impl Connection {
-    fn init(dbus_manager: &Rc<DBusNetworkManager>, path: &str) -> Result<Self> {
+    fn init(dbus_manager: &Arc<DBusNetworkManager>, path: &str) -> Result<Self> {
         let settings = dbus_manager.get_connection_settings(path)?;
 
         Ok(Connection {
-            dbus_manager: Rc::clone(dbus_manager),
+            dbus_manager: Arc::clone(dbus_manager),
             path: path.to_string(),
             settings,
         })
@@ -193,7 +193,7 @@ impl From<i64> for ConnectionState {
     }
 }
 
-pub fn get_connections(dbus_manager: &Rc<DBusNetworkManager>) -> Result<Vec<Connection>> {
+pub fn get_connections(dbus_manager: &Arc<DBusNetworkManager>) -> Result<Vec<Connection>> {
     let paths = dbus_manager.list_connections()?;
 
     let mut connections = Vec::with_capacity(paths.len());
@@ -207,7 +207,7 @@ pub fn get_connections(dbus_manager: &Rc<DBusNetworkManager>) -> Result<Vec<Conn
     Ok(connections)
 }
 
-pub fn get_active_connections(dbus_manager: &Rc<DBusNetworkManager>) -> Result<Vec<Connection>> {
+pub fn get_active_connections(dbus_manager: &Arc<DBusNetworkManager>) -> Result<Vec<Connection>> {
     let active_paths = dbus_manager.get_active_connections()?;
 
     let mut connections = Vec::with_capacity(active_paths.len());
@@ -224,7 +224,7 @@ pub fn get_active_connections(dbus_manager: &Rc<DBusNetworkManager>) -> Result<V
 }
 
 pub fn connect_to_access_point(
-    dbus_manager: &Rc<DBusNetworkManager>,
+    dbus_manager: &Arc<DBusNetworkManager>,
     device_path: &str,
     access_point: &AccessPoint,
     credentials: &AccessPointCredentials,
@@ -243,7 +243,7 @@ pub fn connect_to_access_point(
 }
 
 pub fn create_hotspot<S>(
-    dbus_manager: &Rc<DBusNetworkManager>,
+    dbus_manager: &Arc<DBusNetworkManager>,
     device_path: &str,
     interface: &str,
     ssid: &S,
@@ -267,7 +267,7 @@ where
 }
 
 pub fn create_hotspot_advanced<S>(
-    dbus_manager: &Rc<DBusNetworkManager>,
+    dbus_manager: &Arc<DBusNetworkManager>,
     device_path: &str,
     interface: &str,
     ssid: &S,

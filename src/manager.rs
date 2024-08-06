@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use dbus_nm::DBusNetworkManager;
 use errors::*;
@@ -8,19 +8,19 @@ use device::{get_device_by_interface, get_devices, Device};
 use service::{get_service_state, start_service, stop_service, ServiceState};
 
 pub struct NetworkManager {
-    dbus_manager: Rc<DBusNetworkManager>,
+    dbus_manager: Arc<DBusNetworkManager>,
 }
 
 impl NetworkManager {
     pub fn new() -> Self {
         NetworkManager {
-            dbus_manager: Rc::new(DBusNetworkManager::new(None)),
+            dbus_manager: Arc::new(DBusNetworkManager::new(None)),
         }
     }
 
     pub fn with_method_timeout(timeout: u64) -> Self {
         NetworkManager {
-            dbus_manager: Rc::new(DBusNetworkManager::new(Some(timeout))),
+            dbus_manager: Arc::new(DBusNetworkManager::new(Some(timeout))),
         }
     }
 

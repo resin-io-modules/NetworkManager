@@ -1,5 +1,5 @@
 use std::net::Ipv4Addr;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use dbus_nm::DBusNetworkManager;
 use errors::*;
@@ -9,7 +9,7 @@ use device::{Device, PathGetter};
 use ssid::{AsSsidSlice, Ssid, SsidSlice};
 
 pub struct WiFiDevice<'a> {
-    dbus_manager: Rc<DBusNetworkManager>,
+    dbus_manager: Arc<DBusNetworkManager>,
     device: &'a Device,
 }
 
@@ -186,11 +186,11 @@ bitflags! {
 }
 
 pub fn new_wifi_device<'a>(
-    dbus_manager: &Rc<DBusNetworkManager>,
+    dbus_manager: &Arc<DBusNetworkManager>,
     device: &'a Device,
 ) -> WiFiDevice<'a> {
     WiFiDevice {
-        dbus_manager: Rc::clone(dbus_manager),
+        dbus_manager: Arc::clone(dbus_manager),
         device,
     }
 }
