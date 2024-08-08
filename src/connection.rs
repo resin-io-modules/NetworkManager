@@ -266,6 +266,32 @@ where
     Ok((connection, state))
 }
 
+pub fn create_hotspot_advanced<S>(
+    dbus_manager: &Rc<DBusNetworkManager>,
+    device_path: &str,
+    interface: &str,
+    ssid: &S,
+    password: Option<&str>,
+    address: Ipv4Addr,
+    security: &str,
+    band: &str,
+) -> Result<(Connection, ConnectionState)>
+where
+    S: AsSsidSlice + ?Sized,
+{
+    let (path, _) = dbus_manager.create_hotspot_advanced(device_path, interface, ssid, password, address, security, band)?;
+
+    let connection = Connection::init(dbus_manager, &path)?;
+
+    let state = wait(
+        &connection,
+        &ConnectionState::Activated,
+        dbus_manager.method_timeout(),
+    )?;
+
+    Ok((connection, state))
+}
+
 fn get_connection_active_path(
     dbus_manager: &DBusNetworkManager,
     connection_path: &str,

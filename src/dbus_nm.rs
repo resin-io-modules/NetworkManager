@@ -345,6 +345,79 @@ impl DBusNetworkManager {
         Ok((conn_path.to_string(), active_connection.to_string()))
     }
 
+    pub fn create_hotspot_advanced<T>(
+        &self,
+        device_path: &str,
+        interface: &str,
+        ssid: &T,
+        password: Option<&str>,
+        address: Ipv4Addr,
+        keymgmt: &str,
+        band: &str,
+    ) -> Result<(String, String)>
+    where
+        T: AsSsidSlice + ?Sized,
+    {
+        let ssid = ssid.as_ssid_slice()?;
+        let ssid_vec = ssid.as_bytes().to_vec();
+
+        let mut wireless: VariantMap = HashMap::new();
+        add_val(&mut wireless, "ssid", ssid_vec);
+        add_str(&mut wireless, "band", "bg");
+        add_val(&mut wireless, "hidden", false);
+        add_str(&mut wireless, "mode", "ap");
+        add_str(&mut wireless, "band", band);
+
+        let mut connection: VariantMap = HashMap::new();
+        add_val(&mut connection, "autoconnect", false);
+        if let Ok(ssid_str) = ssid.as_str() {
+            add_str(&mut connection, "id", ssid_str);
+        }
+        add_str(&mut connection, "interface-name", interface);
+        add_str(&mut connection, "type", "802-11-wireless");
+
+        let mut ipv4: VariantMap = HashMap::new();
+
+        add_str(&mut ipv4, "method", "shared");
+
+        let mut addr_map: VariantMap = HashMap::new();
+        add_str(&mut addr_map, "address", format!("{}", address));
+        add_val(&mut addr_map, "prefix", 24_u32);
+
+        add_val(&mut ipv4, "address-data", vec![addr_map]);
+
+        let mut settings: HashMap<String, VariantMap> = HashMap::new();
+
+        if let Some(password) = password {
+            add_str(&mut wireless, "security", "802-11-wireless-security");
+
+            let mut security: VariantMap = HashMap::new();
+            add_str(&mut security, "key-mgmt", keymgmt);
+            add_str(&mut security, "psk", verify_ascii_password(password)?);
+
+            settings.insert("802-11-wireless-security".to_string(), security);
+        }
+
+        settings.insert("802-11-wireless".to_string(), wireless);
+        settings.insert("connection".to_string(), connection);
+        settings.insert("ipv4".to_string(), ipv4);
+
+        let response = self.dbus.call_with_args(
+            NM_SERVICE_PATH,
+            NM_SERVICE_INTERFACE,
+            "AddAndActivateConnection",
+            &[
+                &settings as &dyn RefArg,
+                &Path::new(device_path)? as &dyn RefArg,
+                &Path::new("/")? as &dyn RefArg,
+            ],
+        )?;
+
+        let (conn_path, active_connection): (Path, Path) = self.dbus.extract_two(&response)?;
+
+        Ok((conn_path.to_string(), active_connection.to_string()))
+    }
+
     pub fn get_devices(&self) -> Result<Vec<String>> {
         self.dbus
             .property(NM_SERVICE_PATH, NM_SERVICE_INTERFACE, "Devices")
